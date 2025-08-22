@@ -1,0 +1,17 @@
+backend:
+  name: github
+  repo: romanmoda/informate.noticias  # ya tu usuario y repo
+  branch: main
+
+media_folder: "images/uploads"
+public_folder: "/images/uploads"
+
+collections:
+  - name: "noticias"
+    label: "Noticias"
+    folder: "content/noticias"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - {label: "Título", name: "title", widget: "string"}
+      - {label: "Contenido", name: "body", widget: "markdown"}
