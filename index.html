@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informate - Tu portal de noticias</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            font-size: 18px; /* Tamaño base AUMENTADO */
+        }
+        .news-title {
+            font-family: 'Merriweather', serif;
+        }
+        .article-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .article-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .category-badge {
+            background: linear-gradient(45deg, #059669, #10b981);
+            color: white;
+            padding: 6px 14px; /* Padding aumentado */
+            border-radius: 20px;
+            font-size: 0.95rem; /* Tamaño aumentado */
+            font-weight: 600;
+        }
+        .read-more-btn {
+            background: linear-gradient(45deg, #1e40af, #3b82f6);
+            color: white;
+            padding: 12px 28px; /* Padding aumentado */
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 1.1rem; /* Tamaño aumentado */
+        }
+        .login-btn {
+            background: transparent;
+            color: #6b7280;
+            border: none;
+            padding: 10px 18px; /* Padding aumentado */
+            font-size: 1rem; /* Tamaño aumentado */
+        }
+        .admin-btn {
+            background: linear-gradient(45deg, #059669, #10b981);
+            color: white;
+            padding: 12px 28px; /* Padding aumentado */
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 1.1rem; /* Tamaño aumentado */
+        }
+        .edit-page-btn {
+            background: linear-gradient(45deg, #d97706, #f59e0b);
+            color: white;
+            padding: 12px 28px; /* Padding aumentado */
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 1.1rem; /* Tamaño aumentado */
+            margin-left: 10px;
+        }
+        .breaking-news {
+            background: linear-gradient(45deg, #dc2626, #ef4444);
+            color: white;
+            font-size: 1.2rem; /* Tamaño aumentado */
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2.5rem; /* Padding aumentado */
+            border-radius: 15px;
+            width: 90%;
+            max-width: 550px; /* Ancho máximo aumentado */
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .image-preview {
+            width: 100%;
+            max-height: 250px; /* Altura máxima aumentada */
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 15px; /* Margen aumentado */
+        }
+        .editable {
+            transition: all 0.3s ease;
+            font-size: 1.2rem; /* Tamaño aumentado */
+        }
+        .edit-mode .editable {
+            border: 2px dashed #3b82f6;
+            padding: 10px; /* Padding aumentado */
+            margin: 3px; /* Margen aumentado */
+            min-height: 25px; /* Altura mínima aumentada */
+            background: rgba(59, 130, 246, 0.1);
+        }
+        .logo-container {
+            position: relative;
+            display: inline-block;
+        }
+        .logo-edit-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            font-size: 1rem; /* Tamaño aumentado */
+        }
+        .edit-mode .logo-edit-overlay {
+            display: flex;
+            opacity: 1;
+        }
+        #logoEditBtn {
+            display: none;
+        }
+        .user-logged-in #logoEditBtn {
+            display: flex;
+        }
+        .article-content-display {
+            white-space: pre-wrap;
+            font-size: 1.2rem; /* Tamaño aumentado */
+            line-height: 1.7; /* Mejor interlineado */
+        }
+        
+        /* ESTILOS PARA IMÁGENES: TODAS CON ALTURA DE 675PX */
+        .article-main-image,
+        .article-secondary-image,
+        .article-full-image,
+        .additional-image {
+            width: 100%;
+            height: 675px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        /* Ajustes responsivos para imágenes */
+        @media (max-width: 768px) {
+            .article-main-image,
+            .article-secondary-image,
+            .article-full-image,
+            .additional-image {
+                height: 400px;
+            }
+            body {
+                font-size: 16px; /* Ajuste responsivo */
+            }
+            .modal-content {
+                padding: 1.5rem;
+            }
+        }
+        
+        /* Mejoras de tamaño de fuente general */
+        h1 { font-size: 3rem !important; } /* Aumentado */
+        h2 { font-size: 2.5rem !important; } /* Aumentado */
+        h3 { font-size: 2rem !important; } /* Aumentado */
+        h4 { font-size: 1.75rem !important; } /* Aumentado */
+        p { font-size: 1.2rem !important; line-height: 1.7; } /* Aumentado */
+        
+        /* Mejoras para el panel de administración */
+        .admin-form-container {
+            max-height: 70vh;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .admin-form-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .admin-form-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .admin-form-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        .sticky-save-btn {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 1.5rem 0; /* Padding aumentado */
+            border-top: 1px solid #e5e7eb;
+            margin-top: 1.5rem; /* Margen aumentado */
+        }
+
+        /* Estilos para inputs y textareas en modales */
+        .modal-content input[type="text"],
+        .modal-content input[type="email"],
+        .modal-content input[type="password"],
+        .modal-content select,
+        .modal-content textarea {
+            font-size: 1.1rem; /* Tamaño de fuente para inputs */
+            padding: 12px 16px; /* Padding para inputs */
+        }
+        .modal-content label {
+            font-size: 1rem; /* Tamaño de fuente para labels */
+            margin-bottom: 8px;
+        }
+        .modal-content button[type="submit"],
+        .modal-content .bg-blue-600,
+        .modal-content .bg-gray-600 {
+            font-size: 1.1rem; /* Tamaño de fuente para botones de modal */
+            padding: 12px 24px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-5"> <!-- Padding aumentado -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4"> <!-- Espacio aumentado -->
+                    <div class="logo-container" id="logoContainer">
+                        <img id="siteLogo" src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/9673c62e-55bd-4e2e-8301-a7d8708c5ae4.png" alt="Logo del sitio Informate" class="w-14 h-14 md:w-18 md:h-18 rounded-full border-4 border-amber-600"> <!-- Tamaño de logo aumentado -->
+                        <div class="logo-edit-overlay" onclick="openLogoModal()" id="logoEditBtn">
+                            <span class="text-base font-semibold">Cambiar Logo</span> <!-- Tamaño de fuente aumentado -->
+                        </div>
+                    </div>
+                    <h1 class="text-3xl md:text-4xl font-bold text-gray-800 news-title editable" id="siteTitle">Informate</h1> <!-- Tamaño de título aumentado -->
+                </div>
+                
+                <div class="flex items-center space-x-5"> <!-- Espacio aumentado -->
+                    <nav class="hidden md:flex space-x-7"> <!-- Espacio aumentado -->
+                        <a href="#" class="text-gray-700 hover:text-blue-600 font-semibold editable" data-id="nav-inicio" onclick="loadContent()">Inicio</a>
+                        <a href="#" class="text-gray-700 hover:text-blue-600 font-semibold editable" data-id="nav-politica" onclick="loadCategory('Política')">Política</a>
+                        <a href="#" class="text-gray-700 hover:text-blue-600 font-semibold editable" data-id="nav-economia" onclick="loadCategory('Economía')">Economía</a>
+                        <a href="#" class="text-gray-700 hover:text-blue-600 font-semibold editable" data-id="nav-deportes" onclick="loadCategory('Deportes')">Deportes</a>
+                        <a href="#" class="text-gray-700 hover:text-blue-600 font-semibold editable" data-id="nav-cultura" onclick="loadCategory('Cultura')">Cultura</a>
+                    </nav>
+                    
+                    <div id="userSection" class="hidden">
+                        <button onclick="openAdminPanel()" class="admin-btn">Panel Admin</button>
+                        <button onclick="toggleEditMode()" class="edit-page-btn" id="editPageBtn">Editar Página</button>
+                        <button onclick="logout()" class="login-btn ml-3">Cerrar Sesión</button> <!-- Margen aumentado -->
+                    </div>
+                    
+                    <div id="loginSection">
+                        <button onclick="openLogin()" class="login-btn">Admin</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Breaking News -->
+    <div class="bg-red-600 text-white py-4 breaking-news editable" id="breakingNews"> <!-- Padding aumentado -->
+        <div class="container mx-auto px-4 text-center">
+            <p class="font-semibold text-base md:text-lg">🚨 ULTIMO MOMENTO: Importante anuncio económico 🚨</p> <!-- Tamaño de fuente aumentado -->
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-10"> <!-- Padding aumentado -->
+        <div id="contentArea">
+            <!-- Las noticias se cargarán aquí -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-14 mt-14"> <!-- Padding y margen aumentados -->
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10"> <!-- Espacio aumentado -->
+                <div>
+                    <div class="flex items-center space-x-3 mb-5"> <!-- Espacio y margen aumentados -->
+                        <img id="footerLogo" src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/09c6443f-844b-4aaf-ae2a-b4bf10937861.png" alt="Logo pequeño del sitio" class="w-10 h-10"> <!-- Tamaño de logo aumentado -->
+                        <span class="text-2xl font-bold editable" id="footerTitle">Informate</span> <!-- Tamaño de título aumentado -->
+                    </div>
+                    <p class="text-gray-400 text-base editable" id="footerDescription">Tu fuente confiable de noticias.</p> <!-- Tamaño de fuente aumentado -->
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal de Login -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="text-center mb-7"> <!-- Margen aumentado -->
+                <h2 class="text-3xl font-bold text-gray-800">Acceso Administrador</h2> <!-- Tamaño de título aumentado -->
+            </div>
+            
+            <form id="loginForm" class="space-y-5"> <!-- Espacio aumentado -->
+                <div>
+                    <label class="block text-base font-medium text-gray-700 mb-2">Email</label> <!-- Tamaño de fuente aumentado -->
+                    <input type="email" id="email" class="w-full px-5 py-3 border border-gray-300 rounded-lg text-lg" required> <!-- Padding y tamaño de fuente aumentado -->
+                </div>
+                
+                <div>
+                    <label class="block text-base font-medium text-gray-700 mb-2">Contraseña</label> <!-- Tamaño de fuente aumentado -->
+                    <input type="password" id="password" class="w-full px-5 py-3 border border-gray-300 rounded-lg text-lg" required> <!-- Padding y tamaño de fuente aumentado -->
+                </div>
+                
+                <button type="submit" class="w-full bg-blue-600 text-white py-3.5 rounded-lg font-semibold text-xl">Ingresar</button> <!-- Padding y tamaño de fuente aumentado -->
+            </form>
+            
+            <div class="text-center mt-5"> <!-- Margen aumentado -->
+                <button type="button" onclick="closeLogin()" class="text-gray-600 hover:text-gray-800 text-base">Cancelar</button> <!-- Tamaño de fuente aumentado -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Administración -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content" style="max-width: 950px; max-height: 90vh;"> <!-- Ancho máximo aumentado -->
+            <div class="flex justify-between items-center mb-7"> <!-- Margen aumentado -->
+                <h2 class="text-3xl font-bold text-gray-800">Panel de Administración</h2> <!-- Tamaño de título aumentado -->
+                <button type="button" onclick="closeAdminPanel()" class="text-gray-600 hover:text-gray-800 text-3xl">✕</button> <!-- Tamaño de fuente aumentado -->
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full"> <!-- Espacio aumentado -->
+                <div class="admin-form-container">
+                    <h3 class="text-2xl font-semibold mb-5">Crear Nueva Nota</h3> <!-- Tamaño de título aumentado -->
+                    <form id="articleForm" class="space-y-5"> <!-- Espacio aumentado -->
+                        <input type="hidden" id="articleId">
+                        
+                        <div>
+                            <label class="block text-base font-medium text-gray-700 mb-2">Título</label> <!-- Tamaño de fuente aumentado -->
+                            <input type="text" id="articleTitle" class="w-full px-5 py-3 border border-gray-300 rounded-lg text-lg" required> <!-- Padding y tamaño de fuente aumentado -->
+                        </div>
+                        
+                        <div>
+                            <label class="block text-base font-medium text-gray-700 mb-2">Categoría</label> <!-- Tamaño de fuente aumentado -->
+                            <select id="articleCategory" class="w-full px-5 py-3 border border-gray-300 rounded-lg text-lg" required> <!-- Padding y tamaño de fuente aumentado -->
+                                <option value="">Seleccionar categoría</option>
+                                <option value="Política">Política</option>
+                                <option value="Economía">Economía</option>
+                                <option value="Deportes">Deportes</option>
+                                <option value="Cultura">Cultura</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-base font-medium text-gray-700 mb-2">Imagen de Portada (Recomendado: 1200x675)</label> <!-- Tamaño de fuente aumentado -->
+                            <input type="file" id="articleImage" accept="image/*" class="w-full px-5 py-3 border border-gray-300 rounded-lg text-lg" onchange="previewImage(this, 'imagePreview')"> <!-- Padding y tamaño de fuente aumentado -->
+                            <img id="imagePreview" class="image-preview" style="display: none;">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-base font-medium text-gray-700 mb-2">Contenido</label> <!-- Tamaño de fuente aumentado -->
+                            <textarea id="articleContent" rows="8" class="w-full px-5 py-3 border border-gray-300 rounded-lg text-lg" required></textarea> <!-- Filas, padding y tamaño de fuente aumentado -->
+                        </div>
+
+                        <!-- Sección para agregar más imágenes al cuerpo de la noticia -->
+                        <div id="additionalImagesSection">
+                            <label class="block text-base font-medium text-gray-700 mb-2">Imágenes Adicionales (Recomendado: 1200x675)</label> <!-- Tamaño de fuente aumentado -->
+                            <div id="additionalImagesContainer" class="space-y-3"> <!-- Espacio aumentado -->
+                                <!-- Aquí se agregarán dinámicamente los campos de imagen -->
+                            </div>
+                            <button type="button" onclick="addAdditionalImageField()" class="mt-3 bg-gray-200 text-gray-700 px-5 py-2.5 rounded-lg text-base">Agregar otra imagen</button> <!-- Padding y tamaño de fuente aumentado -->
+                        </div>
+                        
+                        <div>
+                            <label class="block text-base font-medium text-gray-700 mb-2">Autor</label> <!-- Tamaño de fuente aumentado -->
+                            <input type="text" id="articleAuthor" class="w-full px-5 py-3 border border-gray-300 rounded-lg text-lg" required> <!-- Padding y tamaño de fuente aumentado -->
+                        </div>
+                        
+                        <div class="sticky-save-btn">
+                            <div class="flex space-x-5"> <!-- Espacio aumentado -->
+                                <button type="submit" class="bg-blue-600 text-white px-7 py-3.5 rounded-lg font-semibold text-xl flex-1">Guardar</button> <!-- Padding y tamaño de fuente aumentado -->
+                                <button type="button" onclick="resetForm()" class="bg-gray-600 text-white px-7 py-3.5 rounded-lg font-semibold text-xl flex-1">Limpiar</button> <!-- Padding y tamaño de fuente aumentado -->
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="h-full">
+                    <h3 class="text-2xl font-semibold mb-5">Notas Publicadas</h3> <!-- Tamaño de título aumentado -->
+                    <div class="border border-gray-300 rounded-lg p-5 h-96 overflow-y-auto"> <!-- Padding aumentado -->
+                        <div id="articlesList">
+                            <!-- Artículos cargados aquí -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para cambiar logo -->
+    <div id="logoModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-7"> <!-- Margen aumentado -->
+                <h2 class="text-3xl font-bold text-gray-800">Cambiar Logo</h2> <!-- Tamaño de título aumentado -->
+                <button type="button" onclick="closeLogoModal()" class="text-gray-600 hover:text-gray-800 text-3xl">✕</button> <!-- Tamaño de fuente aumentado -->
+            </div>
+            
+            <div class="space-y-5"> <!-- Espacio aumentado -->
+                <div>
+                    <label class="block text-base font-medium text-gray-700 mb-2">Seleccionar nuevo logo</label> <!-- Tamaño de fuente aumentado -->
+                    <input type="file" id="logoInput" accept="image/*" class="w-full px-5 py-3 border border-gray-300 rounded-lg text-lg" onchange="previewImage(this, 'logoPreview')"> <!-- Padding y tamaño de fuente aumentado -->
+                </div>
+                
+                <div class="text-center">
+                    <img id="logoPreview" class="image-preview mx-auto" style="display: none; max-width: 250px;"> <!-- Ancho máximo aumentado -->
+                </div>
+                
+                <div class="flex space-x-5 justify-center"> <!-- Espacio aumentado -->
+                    <button onclick="saveLogo()" class="bg-blue-600 text-white px-7 py-3.5 rounded-lg font-semibold text-xl">Guardar Logo</button> <!-- Padding y tamaño de fuente aumentado -->
+                    <button onclick="resetLogo()" class="bg-gray-600 text-white px-7 py-3.5 rounded-lg font-semibold text-xl">Restablecer</button> <!-- Padding y tamaño de fuente aumentado -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos iniciales de ejemplo
+        const initialArticles = [
+            {
+                id: 1,
+                title: "Gran movilización social exige cambios económicos",
+                category: "Política",
+                image: "https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/98362abf-9864-4356-ae6f-af91a911b67d.png",
+                content: "Miles de personas se manifestaron en plaza central contra las medidas económicas recientes...\n\nEsta es una segunda línea de contenido para demostrar el salto de línea.",
+                additionalImages: [],
+                author: "Ana Rodríguez",
+                date: "2024-01-15",
+                published: true
+            },
+            {
+                id: 2,
+                title: "El equipo local se corona campeón en final emocionante",
+                category: "Deportes",
+                image: "https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/3fabcfa9-c434-4a1c-9c41-c1bca63e3e66.png",
+                content: "Después de un partido lleno de emociones, el equipo local logró la victoria en tiempo extra...\n\nEl partido se jugó en un estadio lleno.",
+                additionalImages: [],
+                author: "Carlos Méndez",
+                date: "2024-01-15",
+                published: true
+            }
+        ];
+
+        // Inicializar datos en localStorage si no existen
+        function initializeData() {
+            if (!localStorage.getItem('articles')) {
+                localStorage.setItem('articles', JSON.stringify(initialArticles));
+            }
+            if (!localStorage.getItem('nextId')) {
+                localStorage.setItem('nextId', '3');
+            }
+            if (!localStorage.getItem('siteSettings')) {
+                localStorage.setItem('siteSettings', JSON.stringify({
+                    logo: 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/58d6b747-5834-44ae-acdc-9ea926de6b45.png',
+                    title: 'Informate',
+                    breakingNews: '🚨 ULTIMO MOMENTO: Importante anuncio económico 🚨',
+                    footerTitle: 'Informate',
+                    footerDescription: 'Tu fuente confiable de noticias.',
+                    navItems: {
+                        'nav-inicio': 'Inicio',
+                        'nav-politica': 'Política',
+                        'nav-economia': 'Economía',
+                        'nav-deportes': 'Deportes',
+                        'nav-cultura': 'Cultura'
+                    }
+                }));
+            }
+            
+            // Cargar configuración del sitio
+            loadSiteSettings();
+        }
+
+        // Cargar configuración del sitio desde localStorage
+        function loadSiteSettings() {
+            const settings = JSON.parse(localStorage.getItem('siteSettings') || '{}');
+            
+            // Aplicar configuración
+            document.getElementById('siteLogo').src = settings.logo || 'https://placehold.co/60x60';
+            document.getElementById('footerLogo').src = settings.logo || 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/3fabcfa9-c434-4a1c-9c41-c1bca63e3e66.png';
+            document.getElementById('siteTitle').textContent = settings.title || 'Informate';
+            document.getElementById('footerTitle').textContent = settings.footerTitle || 'Informate';
+            document.getElementById('footerDescription').textContent = settings.footerDescription || 'Tu fuente confiable de noticias.';
+            
+            if (settings.breakingNews) {
+                document.getElementById('breakingNews').querySelector('p').textContent = settings.breakingNews;
+            }
+            
+            // Aplicar texto de navegación
+            if (settings.navItems) {
+                Object.keys(settings.navItems).forEach(id => {
+                    const element = document.querySelector(`[data-id="${id}"]`);
+                    if (element) {
+                        element.textContent = settings.navItems[id];
+                    }
+                });
+            }
+        }
+
+        // Guardar configuración del sitio
+        function saveSiteSettings() {
+            const settings = {
+                logo: document.getElementById('siteLogo').src,
+                title: document.getElementById('siteTitle').textContent,
+                breakingNews: document.getElementById('breakingNews').querySelector('p').textContent,
+                footerTitle: document.getElementById('footerTitle').textContent,
+                footerDescription: document.getElementById('footerDescription').textContent,
+                navItems: {}
+            };
+
+            // Recopilar texto de navegación
+            document.querySelectorAll('[data-id]').forEach(element => {
+                settings.navItems[element.getAttribute('data-id')] = element.textContent;
+            });
+
+            localStorage.setItem('siteSettings', JSON.stringify(settings));
+        }
+
+        // Obtener artículos del localStorage
+        function getArticles() {
+            return JSON.parse(localStorage.getItem('articles') || '[]');
+        }
+
+        // Guardar artículos en el localStorage
+        function saveArticles(articles) {
+            localStorage.setItem('articles', JSON.stringify(articles));
+        }
+
+        // Obtener el próximo ID disponible para un nuevo artículo
+        function getNextId() {
+            const nextId = parseInt(localStorage.getItem('nextId') || '1');
+            localStorage.setItem('nextId', (nextId + 1).toString());
+            return nextId;
+        }
+
+        // Mostrar vista previa de la imagen seleccionada
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.style.display = 'none';
+                preview.src = '';
+            }
+        }
+
+        // Alternar modo de edición de página
+        function toggleEditMode() {
+            const isEditing = document.body.classList.toggle('edit-mode');
+            const editBtn = document.getElementById('editPageBtn');
+            
+            if (isEditing) {
+                editBtn.textContent = 'Guardar Cambios';
+                editBtn.style.background = 'linear-gradient(45deg, #059669, #10b981)';
+                enablePageEditing();
+            } else {
+                editBtn.textContent = 'Editar Página';
+                editBtn.style.background = 'linear-gradient(45deg, #d97706, #f59e0b)';
+                disablePageEditing();
+                saveSiteSettings();
+                alert('Cambios guardados correctamente!');
+            }
+        }
+
+        // Habilitar edición de página
+        function enablePageEditing() {
+            // Hacer todos los elementos editables
+            document.querySelectorAll('.editable').forEach(element => {
+                element.setAttribute('contenteditable', 'true');
+            });
+            
+            // Mostrar overlay de edición de logo
+            document.getElementById('logoEditBtn').style.display = 'flex';
+        }
+
+        // Deshabilitar edición de página
+        function disablePageEditing() {
+            // Deshabilitar edición
+            document.querySelectorAll('.editable').forEach(element => {
+                element.setAttribute('contenteditable', 'false');
+            });
+            
+            // Ocultar overlay de edición de logo
+            document.getElementById('logoEditBtn').style.display = 'none';
+        }
+
+        // Cargar el contenido principal de la página
+        function loadContent() {
+            const articles = getArticles().filter(article => article.published);
+            const contentArea = document.getElementById('contentArea');
+            
+            if (articles.length === 0) {
+                contentArea.innerHTML = `
+                    <div class="text-center py-12">
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">No hay noticias disponibles</h2>
+                        <p class="text-gray-600 text-lg">Usa el panel de administración para crear noticias.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Artículo principal (el más reciente)
+            const mainArticle = articles[0];
+            // Artículos secundarios (los siguientes 4)
+            const secondaryArticles = articles.slice(1, 5);
+            // Noticias rápidas (los primeros 3)
+            const quickNews = articles.slice(0, 3);
+
+            contentArea.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <article class="article-card" onclick="viewArticle(${mainArticle.id})">
+                            <img src="${mainArticle.image}" alt="${mainArticle.title}" class="article-main-image">
+                            <div class="p-6">
+                                <span class="category-badge">${mainArticle.category}</span>
+                                <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mt-4 mb-4">${mainArticle.title}</h2>
+                                <p class="text-gray-600 mb-4 article-content-display">${mainArticle.content}</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-base text-gray-500">Por ${mainArticle.author} • ${mainArticle.date}</span> <!-- Tamaño de fuente aumentado -->
+                                    <button class="read-more-btn" onclick="event.stopPropagation(); viewArticle(${mainArticle.id})">Leer más</button>
+                                </div>
+                            </div>
+                        </article>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                            ${secondaryArticles.map(article => `
+                                <article class="article-card" onclick="viewArticle(${article.id})">
+                                    <img src="${article.image}" alt="${article.title}" class="article-secondary-image">
+                                    <div class="p-4">
+                                        <span class="category-badge">${article.category}</span>
+                                        <h3 class="text-xl font-bold text-gray-800 mt-3 mb-2">${article.title}</h3>
+                                        <p class="text-gray-600 text-base mb-3 article-content-display">${article.content.substring(0, 100)}...</p> <!-- Tamaño de fuente aumentado -->
+                                        <span class="text-sm text-gray-500">Por ${article.author} • ${article.date}</span> <!-- Tamaño de fuente aumentado -->
+                                    </div>
+                                </article>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Noticias Rápidas</h3>
+                            <div class="space-y-4">
+                                ${quickNews.map((article, index) => `
+                                    <div class="border-l-4 ${index === 0 ? 'border-blue-500' : index === 1 ? 'border-green-500' : 'border-red-500'} pl-3 cursor-pointer" onclick="viewArticle(${article.id})">
+                                        <h4 class="font-semibold text-gray-800">${article.title.substring(0, 50)}...</h4>
+                                        <p class="text-base text-gray-600 article-content-display">${article.content.substring(0, 80)}...</p> <!-- Tamaño de fuente aumentado -->
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Cargar noticias por categoría
+        function loadCategory(category) {
+            const articles = getArticles().filter(article => article.published && article.category === category);
+            const contentArea = document.getElementById('contentArea');
+            
+            if (articles.length === 0) {
+                contentArea.innerHTML = `
+                    <div class="text-center py-12">
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">No hay noticias en ${category}</h2>
+                        <p class="text-gray-600 text-lg">Pronto publicaremos noticias en esta categoría.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            contentArea.innerHTML = `
+                <h2 class="text-3xl font-bold text-gray-800 mb-8">${category}</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    ${articles.map(article => `
+                        <article class="article-card" onclick="viewArticle(${article.id})">
+                            <img src="${article.image}" alt="${article.title}" class="article-secondary-image">
+                            <div class="p-4">
+                                <span class="category-badge">${article.category}</span>
+                                <h3 class="text-xl font-bold text-gray-800 mt-3 mb-2">${article.title}</h3>
+                                <p class="text-gray-600 text-base mb-3 article-content-display">${article.content.substring(0, 100)}...</p> <!-- Tamaño de fuente aumentado -->
+                                <span class="text-sm text-gray-500">Por ${article.author} • ${article.date}</span> <!-- Tamaño de fuente aumentado -->
+                            </div>
+                        </article>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Ver artículo completo
+        function viewArticle(id) {
+            const articles = getArticles();
+            const article = articles.find(a => a.id === id);
+            
+            if (article) {
+                const contentArea = document.getElementById('contentArea');
+                
+                // Construir el contenido con imágenes adicionales
+                let fullContentHtml = `<p class="text-gray-700 leading-relaxed text-lg mb-8 article-content-display">${article.content}</p>`;
+                if (article.additionalImages && article.additionalImages.length > 0) {
+                    article.additionalImages.forEach(imgSrc => {
+                        fullContentHtml += `<img src="${imgSrc}" alt="Imagen adicional relacionada con la noticia ${article.title}" class="additional-image">`;
+                    });
+                }
+
+                contentArea.innerHTML = `
+                    <article class="bg-white rounded-lg shadow-md p-8">
+                        <span class="category-badge">${article.category}</span>
+                        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mt-4 mb-6">${article.title}</h1>
+                        
+                        <img src="${article.image}" alt="${article.title}" class="article-full-image mb-6">
+                        
+                        <div class="flex items-center mb-6 text-gray-600 text-lg">
+                            <span>Por ${article.author}</span>
+                            <span class="mx-4">•</span>
+                            <span>${article.date}</span>
+                        </div>
+                        
+                        ${fullContentHtml}
+                        
+                        <button onclick="loadContent()" class="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg">
+                            ← Volver a noticias
+                        </button>
+                    </article>
+                `;
+            }
+        }
+
+        // Abrir modal de login
+        function openLogin() {
+            document.getElementById('loginModal').style.display = 'block';
+        }
+
+        // Cerrar modal de login
+        function closeLogin() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        // Login del administrador
+        function login(email, password) {
+            // Credenciales de ejemplo actualizadas
+            if (email === "informate@gmail.com" && password === "lisiyroman2025") {
+                document.getElementById('userSection').classList.remove('hidden');
+                document.getElementById('loginSection').classList.add('hidden');
+                document.body.classList.add('user-logged-in');
+                closeLogin();
+                return true;
+            }
+            return false;
+        }
+
+        // Logout
+        function logout() {
+            document.getElementById('userSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.body.classList.remove('user-logged-in');
+            document.body.classList.remove('edit-mode');
+            closeAdminPanel();
+            closeLogoModal();
+        }
+
+        // Abrir panel de administración
+        function openAdminPanel() {
+            loadArticlesList();
+            document.getElementById('adminModal').style.display = 'block';
+            // Asegurarse de que haya al menos un campo de imagen adicional al abrir el panel
+            if (document.getElementById('additionalImagesContainer').children.length === 0) {
+                addAdditionalImageField();
+            }
+        }
+
+        // Cerrar panel de administración
+        function closeAdminPanel() {
+            document.getElementById('adminModal').style.display = 'none';
+            resetForm();
+        }
+
+        // Cargar lista de artículos
+        function loadArticlesList() {
+            const articles = getArticles();
+            const articlesList = document.getElementById('articlesList');
+            articlesList.innerHTML = articles.map(article => `
+                <div class="border-b border-gray-200 pb-3 mb-3">
+                    <h4 class="font-semibold text-lg">${article.title}</h4>
+                    <p class="text-base text-gray-600">${article.category} • ${article.date}</p> <!-- Tamaño de fuente aumentado -->
+                    <div class="flex space-x-2 mt-2">
+                        <button onclick="editArticle(${article.id})" class="text-blue-600 text-base">Editar</button> <!-- Tamaño de fuente aumentado -->
+                        <button onclick="deleteArticle(${article.id})" class="text-red-600 text-base">Eliminar</button> <!-- Tamaño de fuente aumentado -->
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Función para agregar un campo de imagen adicional
+        function addAdditionalImageField(imageUrl = '') {
+            const container = document.getElementById('additionalImagesContainer');
+            const index = container.children.length;
+            const div = document.createElement('div');
+            div.classList.add('flex', 'items-center', 'space-x-2', 'mb-2');
+            if (imageUrl) {
+                div.innerHTML = `
+                    <input type="file" id="additionalImage_${index}" data-existing-url="${imageUrl}" accept="image/*" class="w-full px-5 py-3 border border-gray-300 rounded-lg text-lg" onchange="previewImage(this, 'additionalImagePreview_${index}')">
+                    <img id="additionalImagePreview_${index}" class="image-preview" style="max-width: 100px; max-height: 60px;" src="${imageUrl}">
+                    <button type="button" onclick="removeAdditionalImageField(this)" class="text-red-600 text-base">X</button> <!-- Tamaño de fuente aumentado -->
+                `;
+            } else {
+                div.innerHTML = `
+                    <input type="file" id="additionalImage_${index}" accept="image/*" class="w-full px-5 py-3 border border-gray-300 rounded-lg text-lg" onchange="previewImage(this, 'additionalImagePreview_${index}')">
+                    <img id="additionalImagePreview_${index}" class="image-preview" style="display: none; max-width: 100px; max-height: 60px;">
+                    <button type="button" onclick="removeAdditionalImageField(this)" class="text-red-600 text-base">X</button> <!-- Tamaño de fuente aumentado -->
+                `;
+            }
+            container.appendChild(div);
+        }
+
+        // Función para remover un campo de imagen adicional
+        function removeAdditionalImageField(button) {
+            button.parentNode.remove();
+        }
+
+        // Guardar artículo
+        async function saveArticle(event) {
+            event.preventDefault();
+            const articles = getArticles();
+            const articleId = document.getElementById('articleId').value;
+            const imageInput = document.getElementById('articleImage');
+            
+            let imageUrl = "https://placehold.co/1200x675"; // Placeholder por defecto
+
+            if (articleId) {
+                const existingArticle = articles.find(a => a.id === parseInt(articleId));
+                if (existingArticle && !imageInput.files[0]) {
+                    imageUrl = existingArticle.image; // Mantener imagen existente si no se sube una nueva
+                }
+            }
+
+            if (imageInput.files[0]) {
+                imageUrl = await readFileAsDataURL(imageInput.files[0]);
+            }
+
+            // Procesar imágenes adicionales
+            const additionalImages = [];
+            const additionalImageInputs = document.querySelectorAll('#additionalImagesContainer input[type="file"]');
+            for (const input of additionalImageInputs) {
+                if (input.files[0]) {
+                    additionalImages.push(await readFileAsDataURL(input.files[0]));
+                } else if (input.dataset.existingUrl) {
+                    additionalImages.push(input.dataset.existingUrl); // Mantener URL existente si no se sube una nueva
+                }
+            }
+
+            const articleData = {
+                title: document.getElementById('articleTitle').value,
+                category: document.getElementById('articleCategory').value,
+                image: imageUrl,
+                content: document.getElementById('articleContent').value,
+                additionalImages: additionalImages,
+                author: document.getElementById('articleAuthor').value,
+                date: new Date().toLocaleDateString('es-ES'),
+                published: true
+            };
+
+            if (articleId) {
+                const index = articles.findIndex(a => a.id === parseInt(articleId));
+                if (index !== -1) {
+                    articles[index] = { ...articles[index], ...articleData };
+                }
+            } else {
+                articleData.id = getNextId();
+                articles.push(articleData);
+            }
+
+            saveArticles(articles);
+            resetForm();
+            loadArticlesList();
+            loadContent();
+            alert('Artículo guardado correctamente!');
+        }
+
+        // Función auxiliar para leer archivo como Data URL
+        function readFileAsDataURL(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resolve(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Editar artículo
+        function editArticle(id) {
+            const articles = getArticles();
+            const article = articles.find(a => a.id === id);
+            if (article) {
+                document.getElementById('articleId').value = article.id;
+                document.getElementById('articleTitle').value = article.title;
+                document.getElementById('articleCategory').value = article.category;
+                document.getElementById('articleContent').value = article.content;
+                document.getElementById('articleAuthor').value = article.author;
+                
+                const imagePreview = document.getElementById('imagePreview');
+                imagePreview.src = article.image;
+                imagePreview.style.display = 'block';
+                document.getElementById('articleImage').value = ''; // Limpiar el input de archivo para que no se reenvíe el mismo archivo
+
+                // Cargar imágenes adicionales para edición
+                const additionalImagesContainer = document.getElementById('additionalImagesContainer');
+                additionalImagesContainer.innerHTML = ''; // Limpiar campos existentes
+                if (article.additionalImages && article.additionalImages.length > 0) {
+                    article.additionalImages.forEach(imgSrc => {
+                        addAdditionalImageField(imgSrc); // Añadir campos con las URLs existentes
+                    });
+                } else {
+                    addAdditionalImageField(); // Si no hay imágenes adicionales, añadir un campo vacío
+                }
+            }
+        }
+
+        // Eliminar artículo
+        function deleteArticle(id) {
+            if (confirm('¿Estás seguro de eliminar este artículo?')) {
+                const articles = getArticles().filter(a => a.id !== id);
+                saveArticles(articles);
+                loadArticlesList();
+                loadContent();
+                alert('Artículo eliminado correctamente!');
+            }
+        }
+
+        // Resetear formulario
+        function resetForm() {
+            document.getElementById('articleForm').reset();
+            document.getElementById('articleId').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('imagePreview').src = '';
+            document.getElementById('articleImage').value = '';
+            
+            const additionalImagesContainer = document.getElementById('additionalImagesContainer');
+            additionalImagesContainer.innerHTML = '';
+            addAdditionalImageField(); // Asegurarse de que siempre haya al menos un campo de imagen adicional
+        }
+
+        // Abrir modal de logo
+        function openLogoModal() {
+            document.getElementById('logoModal').style.display = 'block';
+        }
+
+        // Cerrar modal de logo
+        function closeLogoModal() {
+            document.getElementById('logoModal').style.display = 'none';
+            document.getElementById('logoPreview').style.display = 'none';
+            document.getElementById('logoPreview').src = '';
+            document.getElementById('logoInput').value = '';
+        }
+
+        // Guardar logo
+        function saveLogo() {
+            const logoInput = document.getElementById('logoInput');
+            if (logoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const logoUrl = e.target.result;
+                    document.getElementById('siteLogo').src = logoUrl;
+                    document.getElementById('footerLogo').src = logoUrl;
+                    
+                    const settings = JSON.parse(localStorage.getItem('siteSettings') || '{}');
+                    settings.logo = logoUrl;
+                    localStorage.setItem('siteSettings', JSON.stringify(settings));
+                    
+                    closeLogoModal();
+                    alert('Logo actualizado correctamente!');
+                };
+                reader.readAsDataURL(logoInput.files[0]);
+            } else {
+                alert('Por favor selecciona un archivo de imagen');
+            }
+        }
+
+        // Resetear logo
+        function resetLogo() {
+            // Asegúrate de que esta URL sea la que quieres como logo por defecto
+            const defaultLogo = 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/58d6b747-5834-44ae-acdc-9ea926de6b45.png'; 
+            document.getElementById('siteLogo').src = defaultLogo;
+            document.getElementById('footerLogo').src = defaultLogo;
+            
+            const settings = JSON.parse(localStorage.getItem('siteSettings') || '{}');
+            settings.logo = defaultLogo;
+            localStorage.setItem('siteSettings', JSON.stringify(settings));
+            
+            closeLogoModal();
+            alert('Logo restablecido al predeterminado');
+        }
+
+        // Event listeners
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            if (!login(email, password)) {
+                alert('Credenciales incorrectas.');
+            }
+        });
+
+        document.getElementById('articleForm').addEventListener('submit', saveArticle);
+
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeData();
+            loadContent();
+        });
+    </script>
+</body>
+</html>
